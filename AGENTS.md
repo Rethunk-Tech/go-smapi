@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Package `smapi` reads SMAPI `manifest.json` files and computes the load order SMAPI's mod resolver would. It imports `go-lenientjson` for Json.NET-style leniency and `go-semverish` for SMAPI version order, and does no file or network I/O. Mod ids are plain `UniqueID` strings; a caller with its own id type maps at the boundary.
+Package `smapi` reads SMAPI `manifest.json` files and computes the load order SMAPI's mod resolver would. It imports `go-lenientjson` for Json.NET-style leniency, `go-semverish` for SMAPI version order and `go-github` for repo-name validation, and does no file or network I/O. Mod ids are plain `UniqueID` strings; a caller with its own id type maps at the boundary.
 
 ## Gate
 

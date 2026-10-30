@@ -1,12 +1,11 @@
 package smapi
 
 import (
-	"regexp"
 	"strconv"
 	"strings"
-)
 
-var repoPattern = regexp.MustCompile(`^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$`)
+	gh "github.com/Rethunk-Tech/go-github"
+)
 
 // updateKey splits "Site:value@subkey" into the value when Site matches site (any case).
 func updateKey(key, site string) (value string, ok bool) {
@@ -43,11 +42,7 @@ func CurseForgeUpdateKey(key string) (string, bool) {
 func GitHubUpdateKey(key string) (string, bool) {
 	s, rest, found := strings.Cut(key, ":")
 	rest = strings.TrimSpace(rest)
-	if !found || !strings.EqualFold(strings.TrimSpace(s), "github") || !repoPattern.MatchString(rest) {
-		return "", false
-	}
-	owner, name, _ := strings.Cut(rest, "/")
-	if strings.Trim(owner, ".") == "" || strings.Trim(name, ".") == "" {
+	if !found || !strings.EqualFold(strings.TrimSpace(s), "github") || !gh.ValidRepo(rest) {
 		return "", false
 	}
 	return rest, true

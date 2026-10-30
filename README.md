@@ -11,8 +11,7 @@
 
 Reads SMAPI mod manifests and orders mods the way SMAPI's mod resolver does. Package `smapi`, module `github.com/Rethunk-Tech/go-smapi`.
 
-<!-- scaffold: one short paragraph on what the package guarantees and why it exists, in plain
-words. -->
+A manifest reader that accepts what SMAPI accepts (comments, trailing commas, BOMs, single quotes, any key casing) and a resolver that returns mods in SMAPI's load order. Neither touches the filesystem, so both are safe to point at downloaded mods.
 
 ## Quick start
 
@@ -24,7 +23,11 @@ A worked example and the contracts: [HUMANS.md](HUMANS.md).
 
 ## Features
 
-<!-- scaffold: 3 to 6 bullets, each a capability a caller can rely on. No roadmap. -->
+- `Parse` reads a `manifest.json` the way SMAPI's Json.NET reader does, with a size bound and no panics on hostile input.
+- Content packs list their framework as one required dependency, however the manifest declares it.
+- `Resolve` orders mods as SMAPI's mod resolver does and flags missing requirements and dependency loops.
+- `NexusUpdateKey`, `CurseForgeUpdateKey` and `GitHubUpdateKey` read update keys; the GitHub one refuses a repo that would move a URL's path.
+- `RewriteDependencies` adds or drops optional dependencies and keeps every other key.
 
 ## Documentation
 

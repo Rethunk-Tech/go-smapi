@@ -1,7 +1,6 @@
 # AGENTS.md
 
-<!-- scaffold: two or three sentences: what package `smapi` does, who imports it, and what it never
-imports (no consumer package). -->
+Package `smapi` reads SMAPI `manifest.json` files and computes the load order SMAPI's mod resolver would. It imports `go-lenientjson` for Json.NET-style leniency and `go-semverish` for SMAPI version order, and does no file or network I/O. Mod ids are plain `UniqueID` strings; a caller with its own id type maps at the boundary.
 
 ## Gate
 
@@ -10,9 +9,21 @@ cannot resolve that check from PATH.
 
 ## Shape
 
-<!-- scaffold: the invariants a change must keep, each with its reason: what stays unexported and
-why, which function is the single path for what, which bound is policy and which is not. -->
+- `Parse` is the single path from bytes to a `Manifest`; `RewriteDependencies` goes through it first, so only a manifest `Parse` accepts is ever rewritten. Both read the object through `readObject`, which carries the curly-quote retry SMAPI makes.
+- Ids compare through `FoldID` (trim, lower-case) everywhere, because SMAPI matches `UniqueID` that way. Never compare ids with `==`.
+- A ContentPackFor framework is folded into `Dependencies` as required (merged with a matching entry), as SMAPI's resolver does, and `Resolve` repeats the merge for callers that build `Mod` by hand.
+- `MaxManifestSize` bounds `Parse` because the lenient pass copies its input; the bound is far above any real manifest and is policy, so a caller may read less.
+- `Resolve` marks each mod `checking` before descending, so a loop ends at the mod that meets itself rather than recursing; recursion depth is at most the number of mods.
+- `Dependency.SatisfiedBy` is false only when both versions parse, so a version SMAPI would reject never hides a mod the caller can still run.
+- Versions: `go-semverish` is SMAPI's non-standard-tolerant comparison (`allowNonStandard: true`, which SMAPI uses for dependency minimums). It also accepts leading zeros, which a strict SMAPI manifest `Version` does not; `Version` is kept as written and never rejected.
+- Out of scope, by design: scanning a folder tree and loader-managed mod lists are caller policy, not SMAPI rules.
 
 ## Files
 
-<!-- scaffold: a `| File | Holds |` table, one row per non-test Go file. -->
+| File | Holds |
+| --- | --- |
+| `doc.go` | Package doc |
+| `manifest.go` | `Manifest`, `Dependency`, `Parse`, `FoldID`, lenient field readers |
+| `updatekey.go` | Nexus, CurseForge and GitHub update key readers |
+| `rewrite.go` | `RewriteDependencies` |
+| `loadorder.go` | `Mod`, `Row`, `Resolve` |

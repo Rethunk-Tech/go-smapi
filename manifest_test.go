@@ -1,6 +1,7 @@
 package smapi
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 	"testing"
@@ -115,7 +116,7 @@ func TestParseErrorsSayWhy(t *testing.T) {
 
 func TestParseRefusesAnOversizedManifest(t *testing.T) {
 	big := `{"UniqueID":"A","Description":"` + strings.Repeat("x", MaxManifestSize) + `"}`
-	if _, err := Parse([]byte(big)); err != ErrTooLarge {
+	if _, err := Parse([]byte(big)); !errors.Is(err, ErrTooLarge) {
 		t.Fatalf("err = %v, want ErrTooLarge", err)
 	}
 }

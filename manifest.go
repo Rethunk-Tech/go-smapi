@@ -179,7 +179,12 @@ func dependencies(raw map[string]json.RawMessage) []Dependency {
 		case out[i].MinimumVersion == "":
 			out[i].IsRequired, out[i].MinimumVersion = true, d.MinimumVersion
 		default:
+			// SMAPI checks the Dependencies entry and the ContentPackFor entry separately, so both minimums
+			// must hold; the higher one implies the other.
 			out[i].IsRequired = true
+			if c, ok := semverish.Compare(d.MinimumVersion, out[i].MinimumVersion); ok && c > 0 {
+				out[i].MinimumVersion = d.MinimumVersion
+			}
 		}
 	}
 	return out

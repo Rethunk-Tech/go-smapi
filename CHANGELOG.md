@@ -6,6 +6,10 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `Parse` keeps the higher minimum when a manifest names its `ContentPackFor` framework in `Dependencies` too; it kept the `Dependencies` one, so a pack could pass `SatisfiedBy` below its framework minimum.
+
 ## [0.1.0] - 2026-10-30
 
 ### Added

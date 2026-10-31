@@ -36,6 +36,14 @@ func TestParseLenient(t *testing.T) {
 				Dependencies: []Dependency{{UniqueID: "pathoschild.contentpatcher", MinimumVersion: "2.0", IsRequired: true}},
 			},
 		},
+		"framework minimum higher than its dependency entry": {
+			`{"UniqueID":"A.P","Dependencies":[{"UniqueID":"CP","MinimumVersion":"1.0.0"}],"ContentPackFor":{"UniqueID":"CP","MinimumVersion":"2.0.0"}}`,
+			Manifest{UniqueID: "A.P", ContentPackFor: "CP", Dependencies: []Dependency{{UniqueID: "CP", MinimumVersion: "2.0.0", IsRequired: true}}},
+		},
+		"framework minimum lower than its dependency entry": {
+			`{"UniqueID":"A.P","Dependencies":[{"UniqueID":"CP","MinimumVersion":"3.0.0"}],"ContentPackFor":{"UniqueID":"CP","MinimumVersion":"2.0.0"}}`,
+			Manifest{UniqueID: "A.P", ContentPackFor: "CP", Dependencies: []Dependency{{UniqueID: "CP", MinimumVersion: "3.0.0", IsRequired: true}}},
+		},
 		"legacy version object": {
 			`{"Name":"Old","Author":"A","UniqueID":"A.Old","Version":{"MajorVersion":1,"MinorVersion":2,"PatchVersion":3,"Build":"beta"}}`,
 			Manifest{Name: "Old", Author: "A", Version: "1.2.3-beta", UniqueID: "A.Old"},

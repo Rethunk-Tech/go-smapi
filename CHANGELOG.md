@@ -6,6 +6,8 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-31
+
 ### Added
 
 - `Manifest.MinimumAPIVersion` reads the manifest's `MinimumApiVersion` as written.
@@ -25,5 +27,6 @@ Notable changes to `go-smapi`. The format follows
 - `RewriteDependencies` adds and drops optional dependencies in a manifest.
 - `Resolve` returns mods in SMAPI's load order, flagging missing required dependencies and dependency loops.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Rethunk-Tech/go-smapi/releases/tag/v0.1.0

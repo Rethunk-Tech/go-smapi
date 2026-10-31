@@ -44,6 +44,10 @@ func TestParseLenient(t *testing.T) {
 			`{"UniqueID":"A.P","Dependencies":[{"UniqueID":"CP","MinimumVersion":"3.0.0"}],"ContentPackFor":{"UniqueID":"CP","MinimumVersion":"2.0.0"}}`,
 			Manifest{UniqueID: "A.P", ContentPackFor: "CP", Dependencies: []Dependency{{UniqueID: "CP", MinimumVersion: "3.0.0", IsRequired: true}}},
 		},
+		"minimum api version": {
+			`{"UniqueID":"A.P","MinimumAPIVersion":" 4.1.0 "}`,
+			Manifest{UniqueID: "A.P", MinimumAPIVersion: "4.1.0"},
+		},
 		"legacy version object": {
 			`{"Name":"Old","Author":"A","UniqueID":"A.Old","Version":{"MajorVersion":1,"MinorVersion":2,"PatchVersion":3,"Build":"beta"}}`,
 			Manifest{Name: "Old", Author: "A", Version: "1.2.3-beta", UniqueID: "A.Old"},
@@ -150,6 +154,37 @@ func TestSatisfiedByComparesSMAPIVersions(t *testing.T) {
 	} {
 		if got := (Dependency{MinimumVersion: c.min}).SatisfiedBy(c.have); got != c.want {
 			t.Errorf("min %q have %q = %v, want %v", c.min, c.have, got, c.want)
+		}
+	}
+}
+
+func TestCheckIsTriState(t *testing.T) {
+	for _, c := range []struct {
+		min, have string
+		want      Status
+	}{
+		{"", "1.0", Met},
+		{"", "junk", Met},
+		{"1.2", "1.2.0", Met},
+		{"1.2", "1.3", Met},
+		{"1.2", "1.1.9", Unmet},
+		{"1.2.3.4", "1.2.3.3", Unmet},
+		{"1.2.3.4", "1.2.3.4", Met},
+		{"1.0", "v1.0.1", Met},
+		{"v1.0", "1.0", Met},
+		{"1.0", "1.0-unofficial", Unmet},
+		{"1.0-beta", "1.0", Met},
+		{"1.0", "1.0-beta", Unmet},
+		{"1.0", "", Unknown},
+		{"1.0", "not a version", Unknown},
+		{"junk", "1.0", Unknown},
+		{"junk", "junk", Unknown},
+	} {
+		if got := (Dependency{MinimumVersion: c.min}).Check(c.have); got != c.want {
+			t.Errorf("Dependency min %q have %q = %v, want %v", c.min, c.have, got, c.want)
+		}
+		if got := (Manifest{MinimumAPIVersion: c.min}).CheckSMAPI(c.have); got != c.want {
+			t.Errorf("CheckSMAPI min %q have %q = %v, want %v", c.min, c.have, got, c.want)
 		}
 	}
 }

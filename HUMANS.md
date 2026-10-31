@@ -49,6 +49,7 @@ func main() {
 | `Parse` | Reads Json.NET-lenient JSON; error when the text is not an object, has no `UniqueID`, or exceeds `MaxManifestSize` (`ErrTooLarge`). Dependencies without a `UniqueID` are skipped; `IsRequired` defaults to true. Never panics. |
 | `Manifest.Version` | The string as written, or a legacy version object printed as `M.m.p[-build]`. Not validated. |
 | `Dependency.SatisfiedBy` | False only when both versions parse and the installed one is older than `MinimumVersion`. |
+| `Dependency.Check`, `Manifest.CheckSMAPI` | `Met`, `Unmet` or `Unknown`: `Unknown` when either version does not parse; an empty minimum (`MinimumVersion`, `MinimumAPIVersion`) is `Met`. SMAPI refuses a mod whose `MinimumApiVersion` is newer than the installed SMAPI. |
 | `FoldID` | The comparison key for a `UniqueID`: trimmed, lower-cased. |
 | `NexusUpdateKey`, `CurseForgeUpdateKey`, `GitHubUpdateKey` | Site name in any case, `@subkey` ignored; the GitHub key refuses anything but a plain `owner/repo`. |
 | `RewriteDependencies` | Parses first (same errors), returns strict JSON, so comments are lost; other keys keep their casing and values. |

@@ -31,15 +31,38 @@ type Dependency struct {
 	IsRequired bool
 }
 
+// Status is the outcome of comparing a version requirement with an installed version.
+type Status int
+
+const (
+	// Unknown means a version could not be ordered, so the requirement is neither met nor unmet.
+	Unknown Status = iota
+	Met
+	Unmet
+)
+
+// checkMinimum orders installed against minimum; an empty minimum is always Met.
+func checkMinimum(minimum, installed string) Status {
+	if minimum == "" {
+		return Met
+	}
+	c, ok := semverish.Compare(installed, minimum)
+	switch {
+	case !ok:
+		return Unknown
+	case c < 0:
+		return Unmet
+	}
+	return Met
+}
+
+// Check compares an installed version of the dependency with MinimumVersion. It is Unknown when either
+// version does not parse; an empty MinimumVersion is Met whatever is installed.
+func (d Dependency) Check(installed string) Status { return checkMinimum(d.MinimumVersion, installed) }
+
 // SatisfiedBy reports whether an installed version of the dependency meets MinimumVersion. It is false
 // only when both versions parse and the installed one is older, so an unreadable version never blocks a mod.
-func (d Dependency) SatisfiedBy(installed string) bool {
-	if d.MinimumVersion == "" {
-		return true
-	}
-	c, ok := semverish.Compare(installed, d.MinimumVersion)
-	return !ok || c >= 0
-}
+func (d Dependency) SatisfiedBy(installed string) bool { return d.Check(installed) != Unmet }
 
 // Manifest holds the manifest.json fields a mod manager reads.
 type Manifest struct {
@@ -59,8 +82,16 @@ type Manifest struct {
 	UpdateCautionMessage string
 	// MinimumGameVersion is the oldest game version the mod runs on, when it declares one.
 	MinimumGameVersion string
+	// MinimumAPIVersion is the oldest SMAPI the mod runs on, as written; empty when it declares none.
+	MinimumAPIVersion string
 	// DeleteOldVersion asks an updater to remove the previous version's files rather than overlay them.
 	DeleteOldVersion bool
+}
+
+// CheckSMAPI compares the installed SMAPI version with MinimumAPIVersion, which SMAPI refuses to load a
+// mod below. It is Unknown when either version does not parse; no MinimumAPIVersion is Met.
+func (m Manifest) CheckSMAPI(installed string) Status {
+	return checkMinimum(m.MinimumAPIVersion, installed)
 }
 
 // FoldID is the key a UniqueID is compared by: SMAPI ids are case-insensitive and may carry stray spaces.
@@ -88,6 +119,7 @@ func Parse(b []byte) (Manifest, error) {
 		UpdateCautionMessage: text(raw, "updatecautionmessage"),
 		DeleteOldVersion:     boolean(field(raw, "deleteoldversion")),
 		MinimumGameVersion:   text(raw, "minimumgameversion"),
+		MinimumAPIVersion:    text(raw, "minimumapiversion"),
 	}
 	if d, ok := dependency(field(raw, "contentpackfor")); ok {
 		m.ContentPackFor = d.UniqueID

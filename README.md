@@ -25,6 +25,7 @@ A worked example and the contracts: [HUMANS.md](HUMANS.md).
 
 - `Parse` reads a `manifest.json` the way SMAPI's Json.NET reader does, with a size bound and no panics on hostile input.
 - Content packs list their framework as one required dependency, however the manifest declares it.
+- `Dependency.Check` and `Manifest.CheckSMAPI` answer met, unmet or unknown for a dependency or `MinimumAPIVersion`, so an unreadable version is never shown as met.
 - `Resolve` orders mods as SMAPI's mod resolver does and flags missing requirements and dependency loops.
 - `NexusUpdateKey`, `CurseForgeUpdateKey` and `GitHubUpdateKey` read update keys; the GitHub one refuses a repo that would move a URL's path.
 - `RewriteDependencies` adds or drops optional dependencies and keeps every other key.

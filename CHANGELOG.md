@@ -6,6 +6,11 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `Manifest.MinimumAPIVersion` reads the manifest's `MinimumApiVersion` as written.
+- `Dependency.Check` and `Manifest.CheckSMAPI` compare an installed version with a minimum and answer `Met`, `Unmet` or `Unknown` (a version that does not parse), so a caller can show "unknown" rather than "met"; `SatisfiedBy` is unchanged.
+
 ### Fixed
 
 - `Parse` keeps the higher minimum when a manifest names its `ContentPackFor` framework in `Dependencies` too; it kept the `Dependencies` one, so a pack could pass `SatisfiedBy` below its framework minimum.

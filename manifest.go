@@ -145,17 +145,16 @@ func readObject(b []byte) (map[string]json.RawMessage, error) {
 			return raw, nil
 		}
 	}
-	var syntax *json.SyntaxError
-	var typed *json.UnmarshalTypeError
-	switch {
-	case err == nil:
+	if err == nil {
 		if raw == nil {
 			return nil, errors.New("manifest is not a JSON object")
 		}
 		return raw, nil
-	case errors.As(err, &syntax):
+	}
+	if syntax, ok := errors.AsType[*json.SyntaxError](err); ok {
 		return nil, fmt.Errorf("invalid JSON at line %d: %s", 1+bytes.Count(clean[:min(int(syntax.Offset), len(clean))], []byte("\n")), syntax.Error())
-	case errors.As(err, &typed):
+	}
+	if _, ok := errors.AsType[*json.UnmarshalTypeError](err); ok {
 		return nil, errors.New("manifest is not a JSON object")
 	}
 	return nil, err

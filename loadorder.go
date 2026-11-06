@@ -72,6 +72,27 @@ const (
 // that a dependency loop or a failed required dependency stops, is placed where SMAPI gives up on it.
 // The walk visits each mod once, so a loop ends at the first mod that meets itself.
 func Resolve(mods []Mod) []Row {
+	nodes, index := buildNodes(mods)
+	r := &resolver{
+		nodes:   nodes,
+		index:   index,
+		states:  make([]state, len(nodes)),
+		cycle:   make([]bool, len(nodes)),
+		ordered: make([]int, 0, len(nodes)),
+	}
+	walk := make([]int, len(nodes))
+	for i := range walk {
+		walk[i] = i
+	}
+	slices.SortStableFunc(walk, func(a, b int) int { return byFolder(nodes[a], nodes[b]) })
+	for _, i := range walk {
+		r.visit(i)
+	}
+	return r.rows(r.dependents())
+}
+
+// buildNodes makes one node per mod with a UniqueID, the first of any duplicates, and indexes them by folded id.
+func buildNodes(mods []Mod) ([]node, map[string]int) {
 	nodes := make([]node, 0, len(mods))
 	index := map[string]int{}
 	for _, m := range mods {
@@ -82,105 +103,115 @@ func Resolve(mods []Mod) []Row {
 		if _, ok := index[key]; ok {
 			continue
 		}
-		n := node{mod: m}
-		seen := map[string]bool{}
-		for _, d := range m.Dependencies {
-			if d.UniqueID != "" && !seen[FoldID(d.UniqueID)] {
-				seen[FoldID(d.UniqueID)] = true
-				n.deps = append(n.deps, d)
-			}
-		}
-		// SMAPI lists the content pack's parent after the manifest's dependencies, always required.
-		if cp := m.ContentPackFor; cp != "" {
-			if i := slices.IndexFunc(n.deps, func(d Dependency) bool { return FoldID(d.UniqueID) == FoldID(cp) }); i >= 0 {
-				n.deps[i].IsRequired = true
-			} else {
-				n.deps = append(n.deps, Dependency{UniqueID: cp, IsRequired: true})
-			}
-		}
-		for _, d := range n.deps {
-			if d.IsRequired {
-				n.required = append(n.required, d.UniqueID)
-			} else {
-				n.optional = append(n.optional, d.UniqueID)
-			}
-		}
 		index[key] = len(nodes)
-		nodes = append(nodes, n)
+		nodes = append(nodes, newNode(m))
 	}
-	find := func(id string) (int, bool) {
-		i, ok := index[FoldID(id)]
-		return i, ok
-	}
-	walk := make([]int, len(nodes))
-	for i := range walk {
-		walk[i] = i
-	}
-	slices.SortStableFunc(walk, func(a, b int) int { return byFolder(nodes[a], nodes[b]) })
+	return nodes, index
+}
 
-	states := make([]state, len(nodes))
-	cycle := make([]bool, len(nodes))
-	ordered := make([]int, 0, len(nodes))
-	var visit func(i int) state
-	visit = func(i int) state {
-		if states[i] != queued {
-			return states[i]
+func newNode(m Mod) node {
+	n := node{mod: m}
+	seen := map[string]bool{}
+	for _, d := range m.Dependencies {
+		if d.UniqueID != "" && !seen[FoldID(d.UniqueID)] {
+			seen[FoldID(d.UniqueID)] = true
+			n.deps = append(n.deps, d)
 		}
-		n := nodes[i]
-		for _, d := range n.deps {
-			if _, ok := find(d.UniqueID); !ok && d.IsRequired {
-				ordered = append(ordered, i)
-				states[i] = failed
-				return failed
-			}
-		}
-		states[i] = checking
-		for _, d := range n.deps {
-			j, ok := find(d.UniqueID)
-			if !ok {
-				continue
-			}
-			if states[j] == checking {
-				ordered = append(ordered, i)
-				cycle[i] = true
-				states[i] = failed
-				return failed
-			}
-			if visit(j) == failed && d.IsRequired {
-				ordered = append(ordered, i)
-				cycle[i] = cycle[j]
-				states[i] = failed
-				return failed
-			}
-		}
-		ordered = append(ordered, i)
-		states[i] = sorted
-		return sorted
 	}
-	for _, i := range walk {
-		visit(i)
+	// SMAPI lists the content pack's parent after the manifest's dependencies, always required.
+	if cp := m.ContentPackFor; cp != "" {
+		if i := slices.IndexFunc(n.deps, func(d Dependency) bool { return FoldID(d.UniqueID) == FoldID(cp) }); i >= 0 {
+			n.deps[i].IsRequired = true
+		} else {
+			n.deps = append(n.deps, Dependency{UniqueID: cp, IsRequired: true})
+		}
 	}
+	for _, d := range n.deps {
+		if d.IsRequired {
+			n.required = append(n.required, d.UniqueID)
+		} else {
+			n.optional = append(n.optional, d.UniqueID)
+		}
+	}
+	return n
+}
 
-	dependents := make([][]string, len(nodes))
-	for _, n := range nodes {
+// resolver is the state of one depth-first walk over the nodes.
+type resolver struct {
+	nodes   []node
+	index   map[string]int
+	states  []state
+	cycle   []bool
+	ordered []int
+}
+
+func (r *resolver) find(id string) (int, bool) {
+	i, ok := r.index[FoldID(id)]
+	return i, ok
+}
+
+// fail places node i in the order as failed.
+func (r *resolver) fail(i int) state {
+	r.ordered = append(r.ordered, i)
+	r.states[i] = failed
+	return failed
+}
+
+func (r *resolver) visit(i int) state {
+	if r.states[i] != queued {
+		return r.states[i]
+	}
+	n := r.nodes[i]
+	for _, d := range n.deps {
+		if _, ok := r.find(d.UniqueID); !ok && d.IsRequired {
+			return r.fail(i)
+		}
+	}
+	r.states[i] = checking
+	for _, d := range n.deps {
+		j, ok := r.find(d.UniqueID)
+		if !ok {
+			continue
+		}
+		if r.states[j] == checking {
+			r.cycle[i] = true
+			return r.fail(i)
+		}
+		if r.visit(j) == failed && d.IsRequired {
+			r.cycle[i] = r.cycle[j]
+			return r.fail(i)
+		}
+	}
+	r.ordered = append(r.ordered, i)
+	r.states[i] = sorted
+	return sorted
+}
+
+// dependents lists, per node, the ids of the nodes that depend on it, in folder order.
+func (r *resolver) dependents() [][]string {
+	dependents := make([][]string, len(r.nodes))
+	for _, n := range r.nodes {
 		for _, d := range n.deps {
-			if p, ok := find(d.UniqueID); ok {
+			if p, ok := r.find(d.UniqueID); ok {
 				dependents[p] = append(dependents[p], n.mod.UniqueID)
 			}
 		}
 	}
 	for i := range dependents {
 		slices.SortFunc(dependents[i], func(a, b string) int {
-			return byFolder(nodes[index[FoldID(a)]], nodes[index[FoldID(b)]])
+			return byFolder(r.nodes[r.index[FoldID(a)]], r.nodes[r.index[FoldID(b)]])
 		})
 	}
+	return dependents
+}
 
-	out := make([]Row, 0, len(ordered))
-	for pos, i := range ordered {
-		n := nodes[i]
+func (r *resolver) rows(dependents [][]string) []Row {
+	out := make([]Row, 0, len(r.ordered))
+	for pos, i := range r.ordered {
+		n := r.nodes[i]
 		missing := make([]string, 0)
 		for _, id := range n.required {
-			if _, ok := find(id); !ok {
+			if _, ok := r.find(id); !ok {
 				missing = append(missing, id)
 			}
 		}
@@ -192,7 +223,7 @@ func Resolve(mods []Mod) []Row {
 			Optional:        n.optional,
 			Dependents:      dependents[i],
 			MissingRequired: missing,
-			Cycle:           cycle[i],
+			Cycle:           r.cycle[i],
 		})
 	}
 	return out

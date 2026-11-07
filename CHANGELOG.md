@@ -6,6 +6,13 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `Parse` reads a manifest that repeats a key in different casings the same way every time (the all-lower-case spelling, else the alphabetically first), instead of by map order.
+- `RewriteDependencies` finds a `dependencies` key in any casing, and leaves one list.
+- A `ContentPackFor` minimum version that cannot be read stays, so `Check` is `Unknown` instead of `Met`.
+- `NexusUpdateKey` and `CurseForgeUpdateKey` refuse `+7`, `-5` and `0`, and `CurseForgeUpdateKey` returns the id without leading zeros.
+
 ## [0.2.0] - 2026-10-31
 
 ### Added

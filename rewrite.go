@@ -1,6 +1,9 @@
 package smapi
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // RewriteDependencies returns manifest.json text with each UniqueID in want added as an optional dependency
 // (unless it is already listed) and each optional dependency in drop that is not in want removed. Other keys, in
@@ -19,8 +22,16 @@ func RewriteDependencies(raw []byte, want, drop []string) ([]byte, error) {
 		MinimumVersion string `json:"MinimumVersion,omitempty"`
 	}
 	var deps []dep
-	if v, ok := doc["Dependencies"]; ok {
-		_ = json.Unmarshal(v, &deps)
+	// The key keeps the casing the manifest used, and a repeat in another casing goes, so one list is left.
+	name, found := key(doc, "dependencies")
+	if !found {
+		name = "Dependencies"
+	}
+	_ = json.Unmarshal(doc[name], &deps)
+	for k := range doc {
+		if k != name && strings.EqualFold(k, name) {
+			delete(doc, k)
+		}
 	}
 	dropSet, wantSet := idSet(drop), idSet(want)
 	kept := make([]dep, 0, len(deps)+len(want))
@@ -43,13 +54,13 @@ func RewriteDependencies(raw []byte, want, drop []string) ([]byte, error) {
 		seen[FoldID(id)] = true
 	}
 	if len(kept) == 0 {
-		delete(doc, "Dependencies")
+		delete(doc, name)
 	} else {
 		b, err := json.Marshal(kept)
 		if err != nil {
 			return nil, err
 		}
-		doc["Dependencies"] = b
+		doc[name] = b
 	}
 	out, err := json.MarshalIndent(doc, "", "  ")
 	if err != nil {

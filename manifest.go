@@ -213,7 +213,11 @@ func dependencies(raw map[string]json.RawMessage) []Dependency {
 			// SMAPI checks the Dependencies entry and the ContentPackFor entry separately, so both minimums
 			// must hold; the higher one implies the other.
 			out[i].IsRequired = true
-			if c, ok := semverish.Compare(d.MinimumVersion, out[i].MinimumVersion); ok && c > 0 {
+			switch c, ok := semverish.Compare(d.MinimumVersion, out[i].MinimumVersion); {
+			case !ok && !readable(d.MinimumVersion):
+				// An unreadable minimum stays, so Check reports Unknown instead of Met.
+				out[i].MinimumVersion = d.MinimumVersion
+			case ok && c > 0:
 				out[i].MinimumVersion = d.MinimumVersion
 			}
 		}
@@ -221,13 +225,29 @@ func dependencies(raw map[string]json.RawMessage) []Dependency {
 	return out
 }
 
-func field(raw map[string]json.RawMessage, name string) json.RawMessage {
-	for k, v := range raw {
-		if strings.EqualFold(k, name) {
-			return v
+// key is the spelling raw holds name under, in any casing. When a manifest repeats a name in several casings, the
+// all-lower-case spelling wins, then the alphabetically first, so one manifest always reads the same.
+func key(raw map[string]json.RawMessage, name string) (string, bool) {
+	best, found := "", false
+	for k := range raw {
+		if !strings.EqualFold(k, name) {
+			continue
+		}
+		if !found || k == name || best != name && k < best {
+			best, found = k, true
 		}
 	}
-	return nil
+	return best, found
+}
+
+func readable(v string) bool {
+	_, ok := semverish.Compare(v, v)
+	return ok
+}
+
+func field(raw map[string]json.RawMessage, name string) json.RawMessage {
+	k, _ := key(raw, name)
+	return raw[k]
 }
 
 func text(raw map[string]json.RawMessage, name string) string {

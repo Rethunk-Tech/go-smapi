@@ -223,3 +223,43 @@ func TestUpdateKeys(t *testing.T) {
 		t.Error("curseforge accepted 0")
 	}
 }
+
+func TestParseReadsRepeatedKeysTheSameEveryTime(t *testing.T) {
+	for range 200 {
+		m, err := Parse([]byte(`{"UniqueID":"Alice.One","uniqueid":"Bob.Two","UNIQUEID":"Cy.Three","Name":"x"}`))
+		if err != nil || m.UniqueID != "Bob.Two" {
+			t.Fatalf("UniqueID = %q, %v", m.UniqueID, err)
+		}
+	}
+	// With no all-lower-case spelling, the alphabetically first wins.
+	if m, _ := Parse([]byte(`{"UniqueID":"Alice.One","Name":"x","NAME":"y"}`)); m.Name != "y" {
+		t.Fatal(m.Name)
+	}
+}
+
+func TestAnUnreadableContentPackMinimumStaysUnknown(t *testing.T) {
+	m, err := Parse([]byte(`{"UniqueID":"c.p","ContentPackFor":{"UniqueID":"F","MinimumVersion":"not-a-version"},
+		"Dependencies":[{"UniqueID":"F","MinimumVersion":"1.0.0"}]}`))
+	if err != nil || len(m.Dependencies) != 1 {
+		t.Fatalf("%+v %v", m, err)
+	}
+	if got := m.Dependencies[0].Check("1.0.0"); got != Unknown {
+		t.Fatalf("Check = %v, want Unknown", got)
+	}
+}
+
+func TestUpdateKeysTakeCanonicalPositiveNumbersOnly(t *testing.T) {
+	for _, key := range []string{"Nexus:0", "Nexus:+7", "Nexus:-5", "Nexus:", "Nexus: 1 2"} {
+		if n, ok := NexusUpdateKey(key); ok {
+			t.Errorf("%q gave %d", key, n)
+		}
+	}
+	for _, key := range []string{"CurseForge:+123", "CurseForge:-1", "CurseForge:00", "CurseForge:"} {
+		if id, ok := CurseForgeUpdateKey(key); ok {
+			t.Errorf("%q gave %q", key, id)
+		}
+	}
+	if id, ok := CurseForgeUpdateKey("CurseForge:0123"); !ok || id != "123" {
+		t.Errorf("leading zeros: %q, %v", id, ok)
+	}
+}

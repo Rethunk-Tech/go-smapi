@@ -1,6 +1,7 @@
 package smapi
 
 import (
+	"encoding/json"
 	"slices"
 	"testing"
 )
@@ -46,5 +47,25 @@ func TestRewriteDependenciesDropsTheKeyWhenEmpty(t *testing.T) {
 func TestRewriteDependenciesRefusesAnUnreadableManifest(t *testing.T) {
 	if _, err := RewriteDependencies([]byte(`{"Name":"no id"}`), []string{"x"}, nil); err == nil {
 		t.Fatal("rewrote a manifest without a UniqueID")
+	}
+}
+
+func TestRewriteDependenciesFollowsTheKeysCasing(t *testing.T) {
+	in := `{"uniqueid":"a.b","name":"x","dependencies":[{"UniqueID":"Opt.Mod","IsRequired":false},{"UniqueID":"Need.Req"}]}`
+	out, err := RewriteDependencies([]byte(in), []string{"Want.Mod"}, []string{"Opt.Mod"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]json.RawMessage
+	if err := json.Unmarshal(out, &doc); err != nil || len(doc) != 3 {
+		t.Fatalf("keys %v, %v\n%s", doc, err, out)
+	}
+	m, err := Parse(out)
+	got := map[string]bool{}
+	for _, d := range m.Dependencies {
+		got[d.UniqueID] = true
+	}
+	if err != nil || len(got) != 2 || !got["Need.Req"] || !got["Want.Mod"] {
+		t.Fatalf("dependencies %v, %v\n%s", got, err, out)
 	}
 }

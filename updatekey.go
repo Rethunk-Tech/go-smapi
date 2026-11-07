@@ -17,24 +17,34 @@ func updateKey(key, site string) (value string, ok bool) {
 	return strings.TrimSpace(rest), true
 }
 
-// NexusUpdateKey returns the mod page of a "Nexus:1234" or "Nexus:1234@subkey" update key.
+// NexusUpdateKey returns the mod page of a "Nexus:1234" or "Nexus:1234@subkey" update key; the page is a positive number.
 func NexusUpdateKey(key string) (int, bool) {
 	v, ok := updateKey(key, "nexus")
 	if !ok {
 		return 0, false
 	}
-	n, err := strconv.Atoi(v)
-	return n, err == nil
+	n, ok := positive(v)
+	return n, ok
 }
 
-// CurseForgeUpdateKey returns the project id of a "CurseForge:<id>" update key; the id is a positive number.
+// positive reads a number written as digits only, so "+7", "-5", "0" and "" are refused.
+func positive(v string) (int, bool) {
+	if v == "" || strings.Trim(v, "0123456789") != "" {
+		return 0, false
+	}
+	n, err := strconv.Atoi(v)
+	return n, err == nil && n > 0
+}
+
+// CurseForgeUpdateKey returns the project id of a "CurseForge:<id>" update key; the id is a positive number, written
+// without leading zeros however the key spells it.
 func CurseForgeUpdateKey(key string) (string, bool) {
 	v, ok := updateKey(key, "curseforge")
 	if !ok {
 		return "", false
 	}
-	n, err := strconv.Atoi(v)
-	return v, err == nil && n > 0
+	n, ok := positive(v)
+	return strconv.Itoa(n), ok
 }
 
 // GitHubUpdateKey returns the "owner/repo" of a "GitHub:owner/repo" update key. A repo that would move

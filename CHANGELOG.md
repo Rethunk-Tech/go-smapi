@@ -6,6 +6,8 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-07
+
 ### Fixed
 
 - `Parse` reads a manifest that repeats a key in different casings the same way every time (the all-lower-case spelling, else the alphabetically first), instead of by map order.
@@ -34,6 +36,7 @@ Notable changes to `go-smapi`. The format follows
 - `RewriteDependencies` adds and drops optional dependencies in a manifest.
 - `Resolve` returns mods in SMAPI's load order, flagging missing required dependencies and dependency loops.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/Rethunk-Tech/go-smapi/releases/tag/v0.1.0

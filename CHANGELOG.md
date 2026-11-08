@@ -6,6 +6,10 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Package `logline` parses SMAPI `[HH:MM:SS LEVEL Mod]` headers and continuation lines, the loaded save, the `Mods go here:` path, log ownership, and performance-report rows.
+
 ## [0.2.1] - 2026-11-07
 
 ### Fixed

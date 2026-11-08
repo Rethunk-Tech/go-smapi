@@ -12,33 +12,33 @@ go get github.com/Rethunk-Tech/go-smapi
 package main
 
 import (
-	"fmt"
-	"os"
+ "fmt"
+ "os"
 
-	"github.com/Rethunk-Tech/go-smapi"
+ "github.com/Rethunk-Tech/go-smapi"
 )
 
 func main() {
-	var mods []smapi.Mod
-	for _, path := range os.Args[1:] {
-		b, err := os.ReadFile(path)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			continue
-		}
-		m, err := smapi.Parse(b)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: %v\n", path, err)
-			continue
-		}
-		mods = append(mods, smapi.Mod{
-			UniqueID: m.UniqueID, Name: m.Name, Folder: path,
-			Dependencies: m.Dependencies, ContentPackFor: m.ContentPackFor,
-		})
-	}
-	for _, r := range smapi.Resolve(mods) {
-		fmt.Println(r.Position, r.UniqueID, r.MissingRequired, r.Cycle)
-	}
+ var mods []smapi.Mod
+ for _, path := range os.Args[1:] {
+  b, err := os.ReadFile(path)
+  if err != nil {
+   fmt.Fprintln(os.Stderr, err)
+   continue
+  }
+  m, err := smapi.Parse(b)
+  if err != nil {
+   fmt.Fprintf(os.Stderr, "%s: %v\n", path, err)
+   continue
+  }
+  mods = append(mods, smapi.Mod{
+   UniqueID: m.UniqueID, Name: m.Name, Folder: path,
+   Dependencies: m.Dependencies, ContentPackFor: m.ContentPackFor,
+  })
+ }
+ for _, r := range smapi.Resolve(mods) {
+  fmt.Println(r.Position, r.UniqueID, r.MissingRequired, r.Cycle)
+ }
 }
 ```
 
@@ -54,6 +54,11 @@ func main() {
 | `NexusUpdateKey`, `CurseForgeUpdateKey`, `GitHubUpdateKey` | Site name in any case, `@subkey` ignored; the GitHub key refuses anything but a plain `owner/repo`. |
 | `RewriteDependencies` | Parses first (same errors), returns strict JSON, so comments are lost; other keys keep their casing and values. |
 | `Resolve` | Pure and always terminates. Duplicate ids keep the first; a missing required dependency or loop never drops a mod, it flags the row. `Folder` accepts either separator. |
+| `logline.Parser.Parse` | One SMAPI line. A non-header continues the previous entry; with none yet it is INFO. |
+| `logline.LoadedSave` | The save folder from the last SMAPI `loaded save '…'` line; false when none. |
+| `logline.ModsPath` | The `Mods go here:` path as SMAPI wrote it; false when the log does not say. |
+| `logline.LogOwnedBy` | Whether the log's mods path is `modsDir`, expanding `~` with `home`. False when the log does not name a mods folder. |
+| `logline.ParsePerformanceReport` | Pipe-delimited SMAPI performance tables into rows. |
 
 ## Requirements
 

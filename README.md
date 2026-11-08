@@ -29,6 +29,7 @@ A worked example and the contracts: [HUMANS.md](HUMANS.md).
 - `Resolve` orders mods as SMAPI's mod resolver does and flags missing requirements and dependency loops.
 - `NexusUpdateKey`, `CurseForgeUpdateKey` and `GitHubUpdateKey` read update keys; the GitHub one refuses a repo that would move a URL's path.
 - `RewriteDependencies` adds or drops optional dependencies and keeps every other key.
+- `logline.Parser` reads `[HH:MM:SS LEVEL Mod]` headers and continuation lines; `LoadedSave`, `ModsPath` and `LogOwnedBy` read the loaded save, the `Mods go here:` path, and whether a log belongs to a mods folder; `ParsePerformanceReport` reads performance-report rows.
 
 ## Documentation
 

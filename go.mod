@@ -40,7 +40,7 @@ require (
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
 	github.com/Rethunk-Tech/go-desktopenv v0.6.0 // indirect
 	github.com/Rethunk-Tech/go-httpkit v0.1.0 // indirect
-	github.com/Rethunk-Tech/go-safefs v0.7.1 // indirect
+	github.com/Rethunk-Tech/go-safefs v0.8.0 // indirect
 	github.com/alecthomas/chroma/v2 v2.27.0 // indirect
 	github.com/alecthomas/go-check-sumtype v0.5.1-0.20260828200218-ae6904d28606 // indirect
 	github.com/alexkohler/nakedret/v2 v2.0.6 // indirect

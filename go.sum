@@ -50,6 +50,8 @@ github.com/Rethunk-Tech/go-lenientjson v0.1.0 h1:z9tWTZtE6x1FNsUuZEFgbCnaMkYk/0Q
 github.com/Rethunk-Tech/go-lenientjson v0.1.0/go.mod h1:wvcKB3J1GQTQpvVn/GHoGQ41yNMOu9rw6dw3+7k9WaQ=
 github.com/Rethunk-Tech/go-safefs v0.7.1 h1:6QlXzK1MbS0D+fRWYxLpvnZT8HHF5RgslrtnHbAg1Nk=
 github.com/Rethunk-Tech/go-safefs v0.7.1/go.mod h1:m378QSCfnZ+Da68uphEBVzw8G5Y0Zhka5PtUMUBYX1A=
+github.com/Rethunk-Tech/go-safefs v0.8.0 h1:K412lgssd0x3shJC4Ac6h2Jm+rSYvNoWU61ABcRMQf4=
+github.com/Rethunk-Tech/go-safefs v0.8.0/go.mod h1:au7iteKy+uWtmmbGw58R46RJ6tVmcTMeKFLSDyhFZdw=
 github.com/Rethunk-Tech/go-semverish v0.2.0 h1:UrJw6+D1uOclXnkLmpSQAIvzoCqF9XPmXBqRRdA+1lw=
 github.com/Rethunk-Tech/go-semverish v0.2.0/go.mod h1:aCtsBrSen/cxziPkxMmXxk/C3xsFVcH5+GjqPKtr6iM=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=

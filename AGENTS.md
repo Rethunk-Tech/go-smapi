@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Package `smapi` reads SMAPI `manifest.json` files and computes the load order SMAPI's mod resolver would. It imports `go-lenientjson` for Json.NET-style leniency, `go-semverish` for SMAPI version order and `go-github` for repo-name validation, and does no file or network I/O. Mod ids are plain `UniqueID` strings; a caller with its own id type maps at the boundary.
+Package `smapi` reads SMAPI `manifest.json` files and computes the load order SMAPI's mod resolver would. Package `logline` parses SMAPI log text. It imports `go-lenientjson` for Json.NET-style leniency, `go-semverish` for SMAPI version order, `go-github` for repo-name validation and `go-safefs` for log path comparison, and does no file or network I/O. Mod ids are plain `UniqueID` strings; a caller with its own id type maps at the boundary.
 
 ## Gate
 
@@ -16,6 +16,7 @@ cannot resolve that check from PATH.
 - `Resolve` marks each mod `checking` before descending, so a loop ends at the mod that meets itself rather than recursing; recursion depth is at most the number of mods.
 - `Dependency.SatisfiedBy` is false only when both versions parse, so a version SMAPI would reject never hides a mod the caller can still run.
 - Versions: `go-semverish` is SMAPI's non-standard-tolerant comparison (`allowNonStandard: true`, which SMAPI uses for dependency minimums). It also accepts leading zeros, which a strict SMAPI manifest `Version` does not; `Version` is kept as written and never rejected.
+- `logline` is SMAPI's log format only: `Parser` remembers the last header so a continuation inherits time, level and mod; a first line with no header is INFO. `LoadedSave` reads only SMAPI-mod lines. `LogOwnedBy` expands `~` with the caller's home and compares through go-safefs `SamePath`. `ParsePerformanceReport` reads pipe-delimited performance tables.
 - Out of scope, by design: scanning a folder tree and loader-managed mod lists are caller policy, not SMAPI rules.
 
 ## Files
@@ -27,3 +28,5 @@ cannot resolve that check from PATH.
 | `updatekey.go` | Nexus, CurseForge and GitHub update key readers |
 | `rewrite.go` | `RewriteDependencies` |
 | `loadorder.go` | `Mod`, `Row`, `Resolve` |
+| `logline/logline.go` | `Entry`, `Level`, `Parser`, `LoadedSave`, `ModsPath`, `LogOwnedBy` |
+| `logline/perf.go` | `PerformanceRow`, `ParsePerformanceReport` |

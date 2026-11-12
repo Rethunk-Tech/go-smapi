@@ -16,18 +16,13 @@ func RewriteDependencies(raw []byte, want, drop []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	type dep struct {
-		ID             string `json:"UniqueID"`
-		IsRequired     *bool  `json:"IsRequired,omitempty"`
-		MinimumVersion string `json:"MinimumVersion,omitempty"`
-	}
 	var deps []dep
 	// The key keeps the casing the manifest used, and a repeat in another casing goes, so one list is left.
 	name, found := key(doc, "dependencies")
 	if !found {
 		name = "Dependencies"
 	}
-	_ = json.Unmarshal(doc[name], &deps)
+	deps = decodeDeps(doc[name])
 	for k := range doc {
 		if k != name && strings.EqualFold(k, name) {
 			delete(doc, k)
@@ -67,6 +62,57 @@ func RewriteDependencies(raw []byte, want, drop []string) ([]byte, error) {
 		return nil, err
 	}
 	return append(out, '\n'), nil
+}
+
+type dep struct {
+	ID             string `json:"UniqueID"`
+	IsRequired     *bool  `json:"IsRequired,omitempty"`
+	MinimumVersion string `json:"MinimumVersion,omitempty"`
+}
+
+type rawDep struct {
+	ID             string          `json:"UniqueID"`
+	IsRequired     json.RawMessage `json:"IsRequired"`
+	MinimumVersion string          `json:"MinimumVersion,omitempty"`
+}
+
+func decodeDeps(raw json.RawMessage) []dep {
+	var in []rawDep
+	if json.Unmarshal(raw, &in) != nil {
+		return nil
+	}
+	out := make([]dep, 0, len(in))
+	for _, d := range in {
+		out = append(out, dep{
+			ID:             d.ID,
+			IsRequired:     requiredFlag(d.IsRequired),
+			MinimumVersion: d.MinimumVersion,
+		})
+	}
+	return out
+}
+
+func requiredFlag(raw json.RawMessage) *bool {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil
+	}
+	var b bool
+	if json.Unmarshal(raw, &b) == nil {
+		return &b
+	}
+	var s string
+	if json.Unmarshal(raw, &s) != nil {
+		return nil
+	}
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "true":
+		t := true
+		return &t
+	case "false":
+		f := false
+		return &f
+	}
+	return nil
 }
 
 func idSet(ids []string) map[string]bool {

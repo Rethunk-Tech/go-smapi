@@ -69,3 +69,43 @@ func TestRewriteDependenciesFollowsTheKeysCasing(t *testing.T) {
 		t.Fatalf("dependencies %v, %v\n%s", got, err, out)
 	}
 }
+
+func TestRewriteDependenciesKeepsStringIsRequired(t *testing.T) {
+	raw := []byte(`{
+		"Name": "Test",
+		"Author": "A",
+		"Version": "1.0.0",
+		"UniqueID": "Test.Mod",
+		"Dependencies": [
+			{"UniqueID": "Opt", "IsRequired": "false"},
+			{"UniqueID": "Req", "IsRequired": "True"}
+		]
+	}`)
+	out, err := RewriteDependencies(raw, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, err := Parse(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var opt, req *Dependency
+	for i := range m.Dependencies {
+		d := &m.Dependencies[i]
+		switch FoldID(d.UniqueID) {
+		case "opt":
+			opt = d
+		case "req":
+			req = d
+		}
+	}
+	if opt == nil || req == nil {
+		t.Fatalf("deps = %v", m.Dependencies)
+	}
+	if opt.IsRequired {
+		t.Error("Opt required")
+	}
+	if !req.IsRequired {
+		t.Error("Req optional")
+	}
+}

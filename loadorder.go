@@ -33,6 +33,8 @@ type Row struct {
 	MissingRequired []string
 	// Cycle is set on a mod that a dependency loop stopped, and on those depending on it.
 	Cycle bool
+	// Failed is set when the mod is not loaded: a missing required dependency, a loop, or a required dependency that failed.
+	Failed bool
 }
 
 type node struct {
@@ -224,6 +226,7 @@ func (r *resolver) rows(dependents [][]string) []Row {
 			Dependents:      dependents[i],
 			MissingRequired: missing,
 			Cycle:           r.cycle[i],
+			Failed:          r.states[i] == failed,
 		})
 	}
 	return out

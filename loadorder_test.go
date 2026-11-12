@@ -136,3 +136,37 @@ func TestLongChainAndBigLoopTerminate(t *testing.T) {
 		t.Fatalf("rows = %d, first cycle = %v", len(rows), rows[0].Cycle)
 	}
 }
+
+func TestResolveMarksDependentFailedWhenRequiredDepFailed(t *testing.T) {
+	rows := Resolve([]Mod{
+		{UniqueID: "A", Dependencies: []Dependency{{UniqueID: "B", IsRequired: true}}},
+		{UniqueID: "B", Dependencies: []Dependency{{UniqueID: "Missing.Lib", IsRequired: true}}},
+	})
+	var a, b *Row
+	for i := range rows {
+		switch FoldID(rows[i].UniqueID) {
+		case "a":
+			a = &rows[i]
+		case "b":
+			b = &rows[i]
+		}
+	}
+	if a == nil || b == nil {
+		t.Fatalf("rows = %v", rows)
+	}
+	if a.Cycle {
+		t.Error("A Cycle")
+	}
+	if len(a.MissingRequired) != 0 {
+		t.Errorf("A MissingRequired = %v", a.MissingRequired)
+	}
+	if !a.Failed {
+		t.Error("A not failed")
+	}
+	if len(b.MissingRequired) != 1 || b.MissingRequired[0] != "Missing.Lib" {
+		t.Errorf("B MissingRequired = %v", b.MissingRequired)
+	}
+	if b.Cycle {
+		t.Error("B Cycle")
+	}
+}

@@ -50,10 +50,9 @@ func CurseForgeUpdateKey(key string) (string, bool) {
 // GitHubUpdateKey returns the "owner/repo" of a "GitHub:owner/repo" update key. A repo that would move
 // the path of a URL built from it ("..", "o/r?x", "o/r/s") is refused.
 func GitHubUpdateKey(key string) (string, bool) {
-	s, rest, found := strings.Cut(key, ":")
-	rest = strings.TrimSpace(rest)
-	if !found || !strings.EqualFold(strings.TrimSpace(s), "github") || !gh.ValidRepo(rest) {
+	repo, ok := updateKey(key, "github")
+	if !ok || !gh.ValidRepo(repo) {
 		return "", false
 	}
-	return rest, true
+	return repo, true
 }

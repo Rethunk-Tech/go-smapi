@@ -263,3 +263,13 @@ func TestUpdateKeysTakeCanonicalPositiveNumbersOnly(t *testing.T) {
 		t.Errorf("leading zeros: %q, %v", id, ok)
 	}
 }
+
+func TestGitHubUpdateKeyStripsSubkey(t *testing.T) {
+	repo, ok := GitHubUpdateKey("GitHub:owner/repo@YourMod")
+	if !ok || repo != "owner/repo" {
+		t.Errorf("GitHub:owner/repo@YourMod -> %q %v", repo, ok)
+	}
+	if _, ok := GitHubUpdateKey("GitHub:owner/foo/../bar@YourMod"); ok {
+		t.Error("accepted GitHub:owner/foo/../bar@YourMod")
+	}
+}

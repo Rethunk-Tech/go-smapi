@@ -105,3 +105,12 @@ func TestParserReadsACulturesTimeSeparator(t *testing.T) {
 		t.Fatalf("ModsPath = %q, %v", path, ok)
 	}
 }
+
+// In split-screen SMAPI writes the screen between the level and the mod.
+func TestParserSplitScreenHeaderNamesTheMod(t *testing.T) {
+	var p Parser
+	want := Entry{Time: "19:43:46", Level: Info, Mod: "SMAPI", Message: "Context: loaded save 'Farm_1'."}
+	if got := p.Parse("[19:43:46 INFO  screen_1 SMAPI] Context: loaded save 'Farm_1'."); got != want {
+		t.Fatalf("got %+v", got)
+	}
+}

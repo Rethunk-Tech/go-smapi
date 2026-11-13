@@ -31,8 +31,8 @@ type Entry struct {
 }
 
 // SMAPI writes `[HH:MM:SS LEVEL  Mod] message`, padding the level to five characters. The time separator is the
-// culture's, a period in some.
-var header = regexp.MustCompile(`^\[(\d\d[:.]\d\d[:.]\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT) *([^\]]*)\] ?(.*)$`)
+// culture's, a period in some. In split-screen a "screen_N" tag comes before the mod.
+var header = regexp.MustCompile(`^\[(\d\d[:.]\d\d[:.]\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT)(?: +screen_\d+)? *([^\]]*)\] ?(.*)$`)
 
 var loadedSaveRe = regexp.MustCompile(`(?i)(?:Context:\s*)?loaded save '([^']+)'`)
 

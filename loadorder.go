@@ -47,8 +47,8 @@ type node struct {
 // byFolder is the order SMAPI's scanner meets mod folders on Windows: folder by folder, names without regard to case.
 // Mods without a folder go by name, then id.
 func byFolder(a, b node) int {
-	sa := strings.Split(strings.ToLower(filepath.ToSlash(a.mod.Folder)), "/")
-	sb := strings.Split(strings.ToLower(filepath.ToSlash(b.mod.Folder)), "/")
+	sa := strings.Split(strings.ToLower(slashFolder(a.mod.Folder)), "/")
+	sb := strings.Split(strings.ToLower(slashFolder(b.mod.Folder)), "/")
 	if n := slices.Compare(sa, sb); n != 0 {
 		return n
 	}
@@ -56,6 +56,10 @@ func byFolder(a, b node) int {
 		return n
 	}
 	return cmp.Compare(FoldID(a.mod.UniqueID), FoldID(b.mod.UniqueID))
+}
+
+func slashFolder(folder string) string {
+	return strings.ReplaceAll(filepath.ToSlash(folder), "\\", "/")
 }
 
 type state int

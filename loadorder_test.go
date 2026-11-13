@@ -170,3 +170,20 @@ func TestResolveMarksDependentFailedWhenRequiredDepFailed(t *testing.T) {
 		t.Error("B Cycle")
 	}
 }
+
+func TestResolveFolderOrderTreatsBackslashAsSeparator(t *testing.T) {
+	got := Resolve([]Mod{
+		{UniqueID: "dot", Folder: `Mods\A.B`},
+		{UniqueID: "nest", Folder: `Mods\A\C`},
+	})
+	want := Resolve([]Mod{
+		{UniqueID: "dot", Folder: "Mods/A.B"},
+		{UniqueID: "nest", Folder: "Mods/A/C"},
+	})
+	if len(got) != 2 || len(want) != 2 {
+		t.Fatalf("got %d want %d", len(got), len(want))
+	}
+	if got[0].UniqueID != want[0].UniqueID || got[1].UniqueID != want[1].UniqueID {
+		t.Errorf("backslash order %q %q, slash order %q %q", got[0].UniqueID, got[1].UniqueID, want[0].UniqueID, want[1].UniqueID)
+	}
+}

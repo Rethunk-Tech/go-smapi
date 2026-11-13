@@ -117,12 +117,19 @@ func buildNodes(mods []Mod) ([]node, map[string]int) {
 
 func newNode(m Mod) node {
 	n := node{mod: m}
-	seen := map[string]bool{}
+	seen := map[string]int{}
 	for _, d := range m.Dependencies {
-		if FoldID(d.UniqueID) != "" && !seen[FoldID(d.UniqueID)] {
-			seen[FoldID(d.UniqueID)] = true
-			n.deps = append(n.deps, d)
+		key := FoldID(d.UniqueID)
+		if key == "" {
+			continue
 		}
+		// SMAPI checks each entry, so a repeat keeps the first one's place and is required if any entry is.
+		if i, ok := seen[key]; ok {
+			n.deps[i].IsRequired = n.deps[i].IsRequired || d.IsRequired
+			continue
+		}
+		seen[key] = len(n.deps)
+		n.deps = append(n.deps, d)
 	}
 	// SMAPI lists the content pack's parent after the manifest's dependencies, always required.
 	if cp := m.ContentPackFor; cp != "" {

@@ -197,3 +197,11 @@ func TestResolveIgnoresBlankIDs(t *testing.T) {
 		t.Errorf("rows = %+v", rows)
 	}
 }
+
+// SMAPI checks every Dependencies entry, so a repeat that is required makes the dependency required.
+func TestResolveRepeatedDependencyRequiredIfAnyEntryIs(t *testing.T) {
+	rows := Resolve([]Mod{{UniqueID: "A.Mod", Dependencies: append(optional("Missing.Lib"), needs("missing.lib")...)}})
+	if len(rows) != 1 || !rows[0].Failed || !slices.Equal(rows[0].Required, []string{"Missing.Lib"}) {
+		t.Fatalf("rows %+v", rows)
+	}
+}

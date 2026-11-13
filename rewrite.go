@@ -68,6 +68,16 @@ type dep struct {
 	ID             string `json:"UniqueID"`
 	IsRequired     *bool  `json:"IsRequired,omitempty"`
 	MinimumVersion string `json:"MinimumVersion,omitempty"`
+	// verbatim is an entry that is not a readable dependency object; it is written back as it was.
+	verbatim json.RawMessage
+}
+
+func (d dep) MarshalJSON() ([]byte, error) {
+	if d.verbatim != nil {
+		return d.verbatim, nil
+	}
+	type plain dep
+	return json.Marshal(plain(d))
 }
 
 type rawDep struct {
@@ -77,12 +87,17 @@ type rawDep struct {
 }
 
 func decodeDeps(raw json.RawMessage) []dep {
-	var in []rawDep
+	var in []json.RawMessage
 	if json.Unmarshal(raw, &in) != nil {
 		return nil
 	}
 	out := make([]dep, 0, len(in))
-	for _, d := range in {
+	for _, item := range in {
+		var d rawDep
+		if json.Unmarshal(item, &d) != nil {
+			out = append(out, dep{verbatim: item})
+			continue
+		}
 		out = append(out, dep{
 			ID:             d.ID,
 			IsRequired:     requiredFlag(d.IsRequired),

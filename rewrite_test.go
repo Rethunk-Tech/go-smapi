@@ -109,3 +109,18 @@ func TestRewriteDependenciesKeepsStringIsRequired(t *testing.T) {
 		t.Error("Req optional")
 	}
 }
+
+func TestRewriteDependenciesKeepsEntriesItCannotRead(t *testing.T) {
+	in := `{"UniqueID":"a.b","Dependencies":["junk",{"UniqueID":5},{"UniqueID":"x.y","MinimumVersion":"1.0"}]}`
+	out, err := RewriteDependencies([]byte(in), []string{"n.o"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc struct{ Dependencies []json.RawMessage }
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if len(doc.Dependencies) != 4 || string(doc.Dependencies[0]) != `"junk"` {
+		t.Errorf("dependencies = %s", doc.Dependencies)
+	}
+}

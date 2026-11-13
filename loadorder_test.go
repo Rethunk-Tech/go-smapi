@@ -187,3 +187,13 @@ func TestResolveFolderOrderTreatsBackslashAsSeparator(t *testing.T) {
 		t.Errorf("backslash order %q %q, slash order %q %q", got[0].UniqueID, got[1].UniqueID, want[0].UniqueID, want[1].UniqueID)
 	}
 }
+
+func TestResolveIgnoresBlankIDs(t *testing.T) {
+	rows := Resolve([]Mod{
+		{UniqueID: " ", Name: "blank"},
+		{UniqueID: "a", Name: "a", Dependencies: []Dependency{{UniqueID: "  ", IsRequired: true}}},
+	})
+	if len(rows) != 1 || rows[0].Failed || len(rows[0].Required) != 0 {
+		t.Errorf("rows = %+v", rows)
+	}
+}

@@ -103,7 +103,7 @@ func buildNodes(mods []Mod) ([]node, map[string]int) {
 	index := map[string]int{}
 	for _, m := range mods {
 		key := FoldID(m.UniqueID)
-		if m.UniqueID == "" {
+		if FoldID(m.UniqueID) == "" {
 			continue
 		}
 		if _, ok := index[key]; ok {
@@ -119,7 +119,7 @@ func newNode(m Mod) node {
 	n := node{mod: m}
 	seen := map[string]bool{}
 	for _, d := range m.Dependencies {
-		if d.UniqueID != "" && !seen[FoldID(d.UniqueID)] {
+		if FoldID(d.UniqueID) != "" && !seen[FoldID(d.UniqueID)] {
 			seen[FoldID(d.UniqueID)] = true
 			n.deps = append(n.deps, d)
 		}

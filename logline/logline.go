@@ -30,8 +30,9 @@ type Entry struct {
 	Cont    bool
 }
 
-// SMAPI writes `[HH:MM:SS LEVEL  Mod] message`, padding the level to five characters.
-var header = regexp.MustCompile(`^\[(\d\d:\d\d:\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT) *([^\]]*)\] ?(.*)$`)
+// SMAPI writes `[HH:MM:SS LEVEL  Mod] message`, padding the level to five characters. The time separator is the
+// culture's, a period in some.
+var header = regexp.MustCompile(`^\[(\d\d[:.]\d\d[:.]\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT) *([^\]]*)\] ?(.*)$`)
 
 var loadedSaveRe = regexp.MustCompile(`(?i)(?:Context:\s*)?loaded save '([^']+)'`)
 

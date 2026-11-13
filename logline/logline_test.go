@@ -93,3 +93,15 @@ func TestLoadedSaveLastSMAPIMatch(t *testing.T) {
 		}
 	}
 }
+
+// SMAPI formats the time with HH:mm:ss, where ':' is the culture's time separator (a period in fi-FI, for one).
+func TestParserReadsACulturesTimeSeparator(t *testing.T) {
+	var p Parser
+	want := Entry{Time: "19.43.46", Level: Info, Mod: "SMAPI", Message: "Mods go here: ~/Mods"}
+	if got := p.Parse("[19.43.46 INFO  SMAPI] Mods go here: ~/Mods"); got != want {
+		t.Fatalf("got %+v", got)
+	}
+	if path, ok := ModsPath("[19.43.46 INFO  SMAPI] Mods go here: ~/Mods\n"); !ok || path != "~/Mods" {
+		t.Fatalf("ModsPath = %q, %v", path, ok)
+	}
+}

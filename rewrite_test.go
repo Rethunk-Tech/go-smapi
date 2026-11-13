@@ -116,7 +116,9 @@ func TestRewriteDependenciesKeepsEntriesItCannotRead(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var doc struct{ Dependencies []json.RawMessage }
+	var doc struct {
+		Dependencies []json.RawMessage `json:"Dependencies"`
+	}
 	if err := json.Unmarshal(out, &doc); err != nil {
 		t.Fatal(err)
 	}

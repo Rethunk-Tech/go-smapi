@@ -110,6 +110,35 @@ func TestRewriteDependenciesKeepsStringIsRequired(t *testing.T) {
 	}
 }
 
+func TestRewriteDependenciesReadsANumericMinimum(t *testing.T) {
+	in := `{"UniqueID":"a.b","Dependencies":[{"UniqueID":"B","IsRequired":false,"MinimumVersion":1.2}]}`
+	out, err := RewriteDependencies([]byte(in), nil, []string{"b"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, err := Parse(out); err != nil || len(m.Dependencies) != 0 {
+		t.Fatalf("dropped = %+v %v\n%s", m, err, out)
+	}
+	out, err = RewriteDependencies([]byte(in), []string{"b"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, err := Parse(out); err != nil || len(m.Dependencies) != 1 || m.Dependencies[0].IsRequired {
+		t.Fatalf("added = %+v %v\n%s", m, err, out)
+	}
+}
+
+func TestRewriteDependenciesMatchesKeysInAnyCasing(t *testing.T) {
+	in := `{"UniqueID":"a.b","Dependencies":[{"uniqueid":"Drop","UniqueID":"Keep","IsRequired":false}]}`
+	out, err := RewriteDependencies([]byte(in), nil, []string{"drop"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, err := Parse(out); err != nil || len(m.Dependencies) != 0 {
+		t.Fatalf("rewritten = %+v %v\n%s", m, err, out)
+	}
+}
+
 func TestRewriteDependenciesKeepsEntriesItCannotRead(t *testing.T) {
 	in := `{"UniqueID":"a.b","Dependencies":["junk",{"UniqueID":5},{"UniqueID":"x.y","MinimumVersion":"1.0"}]}`
 	out, err := RewriteDependencies([]byte(in), []string{"n.o"}, nil)

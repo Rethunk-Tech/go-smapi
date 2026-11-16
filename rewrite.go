@@ -81,9 +81,8 @@ func (d dep) MarshalJSON() ([]byte, error) {
 }
 
 type rawDep struct {
-	ID             string          `json:"UniqueID"`
-	IsRequired     json.RawMessage `json:"IsRequired"`
-	MinimumVersion string          `json:"MinimumVersion,omitempty"`
+	IsRequired     json.RawMessage
+	MinimumVersion string
 }
 
 func decodeDeps(raw json.RawMessage) []dep {
@@ -93,15 +92,16 @@ func decodeDeps(raw json.RawMessage) []dep {
 	}
 	out := make([]dep, 0, len(in))
 	for _, item := range in {
-		var d rawDep
-		if json.Unmarshal(item, &d) != nil {
+		var obj map[string]json.RawMessage
+		if json.Unmarshal(item, &obj) != nil {
 			out = append(out, dep{verbatim: item})
 			continue
 		}
+		// The same case-insensitive key rule and version reading as Parse, so a dependency it can name can be rewritten.
 		out = append(out, dep{
-			ID:             d.ID,
-			IsRequired:     requiredFlag(d.IsRequired),
-			MinimumVersion: d.MinimumVersion,
+			ID:             text(obj, "uniqueid"),
+			IsRequired:     requiredFlag(field(obj, "isrequired")),
+			MinimumVersion: text(obj, "minimumversion"),
 		})
 	}
 	return out

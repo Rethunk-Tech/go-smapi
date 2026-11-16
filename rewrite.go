@@ -80,11 +80,6 @@ func (d dep) MarshalJSON() ([]byte, error) {
 	return json.Marshal(plain(d))
 }
 
-type rawDep struct {
-	IsRequired     json.RawMessage
-	MinimumVersion string
-}
-
 func decodeDeps(raw json.RawMessage) []dep {
 	var in []json.RawMessage
 	if json.Unmarshal(raw, &in) != nil {

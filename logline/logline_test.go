@@ -79,13 +79,14 @@ func TestLoadedSaveLastSMAPIMatch(t *testing.T) {
 		want string
 		ok   bool
 	}{
-		"plain":    {"[05:00:01 INFO  SMAPI] loaded save 'Spring'\n", "Spring", true},
-		"context":  {"[05:00:01 INFO  SMAPI] Context: loaded save 'Farm_123'\n", "Farm_123", true},
-		"case":     {"[05:00:01 INFO  SMAPI] Loaded Save 'Valley'\n", "Valley", true},
-		"last":     {"[05:00:01 INFO  SMAPI] loaded save 'One'\n[05:00:02 INFO  SMAPI] loaded save 'Two'\n", "Two", true},
-		"other":    {"[05:00:01 INFO  Other] loaded save 'Nope'\n", "", false},
-		"missing":  {"[05:00:01 INFO  SMAPI] hello\n", "", false},
-		"continue": {"[05:00:01 INFO  SMAPI] loaded save 'Keep'\n   at Foo()\n", "Keep", true},
+		"plain":      {"[05:00:01 INFO  SMAPI] loaded save 'Spring'\n", "Spring", true},
+		"context":    {"[05:00:01 INFO  SMAPI] Context: loaded save 'Farm_123'\n", "Farm_123", true},
+		"apostrophe": {"[05:00:01 INFO  SMAPI] Context: loaded save 'O'Brien_123'.\n", "O'Brien_123", true},
+		"case":       {"[05:00:01 INFO  SMAPI] Loaded Save 'Valley'\n", "Valley", true},
+		"last":       {"[05:00:01 INFO  SMAPI] loaded save 'One'\n[05:00:02 INFO  SMAPI] loaded save 'Two'\n", "Two", true},
+		"other":      {"[05:00:01 INFO  Other] loaded save 'Nope'\n", "", false},
+		"missing":    {"[05:00:01 INFO  SMAPI] hello\n", "", false},
+		"continue":   {"[05:00:01 INFO  SMAPI] loaded save 'Keep'\n   at Foo()\n", "Keep", true},
 	}
 	for name, c := range cases {
 		if got, ok := LoadedSave(c.log); got != c.want || ok != c.ok {

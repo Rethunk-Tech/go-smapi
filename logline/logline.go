@@ -34,7 +34,8 @@ type Entry struct {
 // culture's, a period in some. In split-screen a "screen_N" tag comes before the mod.
 var header = regexp.MustCompile(`^\[(\d\d[:.]\d\d[:.]\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT)(?: +screen_\d+)? *([^\]]*)\] ?(.*)$`)
 
-var loadedSaveRe = regexp.MustCompile(`(?i)(?:Context:\s*)?loaded save '([^']+)'`)
+// The folder runs to the last quote, which may sit inside the name, then the period SMAPI sometimes appends.
+var loadedSaveRe = regexp.MustCompile(`(?i)(?:Context:\s*)?loaded save '(.+)'\.?$`)
 
 // LoadedSave returns the save folder SMAPI loaded, from the last matching SMAPI line in log.
 func LoadedSave(log string) (string, bool) {

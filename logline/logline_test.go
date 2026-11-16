@@ -87,6 +87,8 @@ func TestLoadedSaveLastSMAPIMatch(t *testing.T) {
 		"other":      {"[05:00:01 INFO  Other] loaded save 'Nope'\n", "", false},
 		"missing":    {"[05:00:01 INFO  SMAPI] hello\n", "", false},
 		"continue":   {"[05:00:01 INFO  SMAPI] loaded save 'Keep'\n   at Foo()\n", "Keep", true},
+		"reloaded":   {"[05:00:01 INFO  SMAPI] reloaded save 'Nope'\n", "", false},
+		"cont-line":  {"[05:00:01 INFO  SMAPI] Failed:\nloaded save 'Cont'\n", "", false},
 	}
 	for name, c := range cases {
 		if got, ok := LoadedSave(c.log); got != c.want || ok != c.ok {

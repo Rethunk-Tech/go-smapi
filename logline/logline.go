@@ -35,7 +35,8 @@ type Entry struct {
 var header = regexp.MustCompile(`^\[(\d\d[:.]\d\d[:.]\d\d) (TRACE|DEBUG|INFO|WARN|ERROR|ALERT)(?: +screen_\d+)? *([^\]]*)\] ?(.*)$`)
 
 // The folder runs to the last quote, which may sit inside the name, then the period SMAPI sometimes appends.
-var loadedSaveRe = regexp.MustCompile(`(?i)(?:Context:\s*)?loaded save '(.+)'\.?$`)
+// ^ and \b keep a prefix like "re" from turning "loaded save" into a hit.
+var loadedSaveRe = regexp.MustCompile(`(?i)^(?:Context:\s*)?\bloaded save\b '(.+)'\.?$`)
 
 // LoadedSave returns the save folder SMAPI loaded, from the last matching SMAPI line in log.
 func LoadedSave(log string) (string, bool) {
@@ -46,7 +47,7 @@ func LoadedSave(log string) (string, bool) {
 			continue
 		}
 		e := p.Parse(l)
-		if e.Mod != "SMAPI" {
+		if e.Mod != "SMAPI" || e.Cont {
 			continue
 		}
 		if m := loadedSaveRe.FindStringSubmatch(e.Message); m != nil {

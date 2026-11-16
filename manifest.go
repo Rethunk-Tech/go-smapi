@@ -213,6 +213,10 @@ func dependencies(raw map[string]json.RawMessage) []Dependency {
 			// SMAPI checks the Dependencies entry and the ContentPackFor entry separately, so both minimums
 			// must hold; the higher one implies the other.
 			out[i].IsRequired = true
+			// An empty minimum asks for any version, so it never makes a set minimum disappear.
+			if d.MinimumVersion == "" {
+				break
+			}
 			switch c, ok := semverish.Compare(d.MinimumVersion, out[i].MinimumVersion); {
 			case !ok && !readable(d.MinimumVersion):
 				// An unreadable minimum stays, so Check reports Unknown instead of Met.

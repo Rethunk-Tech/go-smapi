@@ -248,6 +248,16 @@ func TestAnUnreadableContentPackMinimumStaysUnknown(t *testing.T) {
 	}
 }
 
+func TestEmptyContentPackMinimumKeepsTheDependenciesOne(t *testing.T) {
+	m, err := Parse([]byte(`{"UniqueID":"a.p","ContentPackFor":{"UniqueID":"F"},"Dependencies":[{"UniqueID":"F","MinimumVersion":"2.0.0"}]}`))
+	if err != nil || len(m.Dependencies) != 1 {
+		t.Fatalf("%+v %v", m, err)
+	}
+	if got := m.Dependencies[0]; got.MinimumVersion != "2.0.0" || got.Check("1.0.0") != Unmet || got.SatisfiedBy("1.0.0") {
+		t.Fatalf("dependency = %+v, Check(1.0.0) = %v", got, got.Check("1.0.0"))
+	}
+}
+
 func TestUpdateKeysTakeCanonicalPositiveNumbersOnly(t *testing.T) {
 	for _, key := range []string{"Nexus:0", "Nexus:+7", "Nexus:-5", "Nexus:", "Nexus: 1 2"} {
 		if n, ok := NexusUpdateKey(key); ok {

@@ -258,6 +258,20 @@ func TestEmptyContentPackMinimumKeepsTheDependenciesOne(t *testing.T) {
 	}
 }
 
+func TestParseReadsNumericVersions(t *testing.T) {
+	m, err := Parse([]byte(`{"UniqueID":"a.b","Version":1.2,"MinimumAPIVersion":4.1,"MinimumGameVersion":1.6,
+		"Dependencies":[{"UniqueID":"c.d","MinimumVersion":1.2}]}`))
+	if err != nil || len(m.Dependencies) != 1 {
+		t.Fatalf("%+v %v", m, err)
+	}
+	if m.Version != "1.2" || m.MinimumAPIVersion != "4.1" || m.MinimumGameVersion != "1.6" || m.Dependencies[0].MinimumVersion != "1.2" {
+		t.Fatalf("versions = %q %q %q %+v", m.Version, m.MinimumAPIVersion, m.MinimumGameVersion, m.Dependencies[0])
+	}
+	if m.CheckSMAPI("4.0.0") != Unmet || m.Dependencies[0].SatisfiedBy("1.0.0") {
+		t.Fatalf("CheckSMAPI(4.0.0) = %v, SatisfiedBy(1.0.0) = %v", m.CheckSMAPI("4.0.0"), m.Dependencies[0].SatisfiedBy("1.0.0"))
+	}
+}
+
 func TestUpdateKeysTakeCanonicalPositiveNumbersOnly(t *testing.T) {
 	for _, key := range []string{"Nexus:0", "Nexus:+7", "Nexus:-5", "Nexus:", "Nexus: 1 2"} {
 		if n, ok := NexusUpdateKey(key); ok {

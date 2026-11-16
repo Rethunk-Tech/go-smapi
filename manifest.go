@@ -255,11 +255,20 @@ func field(raw map[string]json.RawMessage, name string) json.RawMessage {
 }
 
 func text(raw map[string]json.RawMessage, name string) string {
+	return textValue(field(raw, name))
+}
+
+// textValue reads a JSON string, or a number as written, since Json.NET fills a string field from either.
+func textValue(v json.RawMessage) string {
 	var s string
-	if json.Unmarshal(field(raw, name), &s) != nil {
-		return ""
+	if json.Unmarshal(v, &s) == nil {
+		return strings.TrimSpace(s)
 	}
-	return strings.TrimSpace(s)
+	var n json.Number
+	if json.Unmarshal(v, &n) == nil {
+		return n.String()
+	}
+	return ""
 }
 
 func boolean(v json.RawMessage) bool {
@@ -285,11 +294,10 @@ func flexBool(v json.RawMessage) (value, ok bool) {
 	return false, false
 }
 
-// version accepts a string or SMAPI's legacy {MajorVersion, MinorVersion, PatchVersion, Build} object.
+// version accepts a string or a number as written, or SMAPI's legacy {MajorVersion, MinorVersion, PatchVersion, Build} object.
 func version(v json.RawMessage) string {
-	var s string
-	if json.Unmarshal(v, &s) == nil {
-		return strings.TrimSpace(s)
+	if s := textValue(v); s != "" {
+		return s
 	}
 	var obj map[string]json.RawMessage
 	if json.Unmarshal(v, &obj) != nil {

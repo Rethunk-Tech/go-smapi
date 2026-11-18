@@ -33,7 +33,10 @@ func positive(v string) (int, bool) {
 		return 0, false
 	}
 	n, err := strconv.Atoi(v)
-	return n, err == nil && n > 0
+	if err != nil || n <= 0 {
+		return 0, false
+	}
+	return n, true
 }
 
 // CurseForgeUpdateKey returns the project id of a "CurseForge:<id>" update key; the id is a positive number, written

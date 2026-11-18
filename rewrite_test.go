@@ -139,6 +139,42 @@ func TestRewriteDependenciesMatchesKeysInAnyCasing(t *testing.T) {
 	}
 }
 
+func TestRewriteDependenciesDropsARepeatedKeyInAnotherCasing(t *testing.T) {
+	in := `{"UniqueID":"a.b","Dependencies":[{"UniqueID":"Keep"}],"dependencies":[{"UniqueID":"Other","IsRequired":false}]}`
+	out, err := RewriteDependencies([]byte(in), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var doc map[string]json.RawMessage
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := doc["Dependencies"]; ok {
+		t.Fatalf("uppercase key kept:\n%s", out)
+	}
+	m, err := Parse(out)
+	if err != nil || len(m.Dependencies) != 1 || FoldID(m.Dependencies[0].UniqueID) != "other" {
+		t.Fatalf("rewritten = %+v %v\n%s", m, err, out)
+	}
+}
+
+func TestRewriteDependenciesKeepsAnUnreadableIsRequired(t *testing.T) {
+	in := `{"UniqueID":"a.b","Dependencies":[{"UniqueID":"Num","IsRequired":1},{"UniqueID":"Word","IsRequired":"maybe"}]}`
+	out, err := RewriteDependencies([]byte(in), nil, []string{"num", "word"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	m, err := Parse(out)
+	if err != nil || len(m.Dependencies) != 2 {
+		t.Fatalf("rewritten = %+v %v\n%s", m, err, out)
+	}
+	for _, d := range m.Dependencies {
+		if !d.IsRequired {
+			t.Fatalf("%s dropped or optional:\n%s", d.UniqueID, out)
+		}
+	}
+}
+
 func TestRewriteDependenciesKeepsEntriesItCannotRead(t *testing.T) {
 	in := `{"UniqueID":"a.b","Dependencies":["junk",{"UniqueID":5},{"UniqueID":"x.y","MinimumVersion":"1.0"}]}`
 	out, err := RewriteDependencies([]byte(in), []string{"n.o"}, nil)

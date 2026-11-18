@@ -24,6 +24,24 @@ func TestParsePerformanceReportDetail(t *testing.T) {
 	}
 }
 
+func TestAGamePlusModsAverageColumnBeatsAWeakerAvgAndDashedRowsAreSkipped(t *testing.T) {
+	lines := []string{
+		"Mod | Avg | Avg game+mods | Peak",
+		"Alpha | 99.00 | 1.50 | 2.00",
+		"BlankAvg | 99.00 | — | 4.00",
+		"Event | Average (ms) | Average mods | Calls",
+		"Tick | 8.00 | 0.25 | 10",
+	}
+	got := ParsePerformanceReport(lines)
+	want := []PerformanceRow{
+		{Name: "Alpha", AverageMs: 1.5, PeakMs: 2},
+		{Name: "Tick", AverageMs: 0.25, Calls: 10},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("ParsePerformanceReport() = %#v, want %#v", got, want)
+	}
+}
+
 func TestParsePerformanceReportSummary(t *testing.T) {
 	lines := []string{
 		"Event | Average (ms) | Peak (ms) | Calls",

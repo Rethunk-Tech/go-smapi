@@ -71,6 +71,7 @@ func FuzzModsPath(f *testing.F) {
 	f.Add("[05:00:01 INFO  Other] Mods go here: /x\n")
 	f.Add("[05:00:01 INFO  SMAPI] hello\n")
 	f.Add("[19.43.46 INFO  SMAPI] Mods go here: ~/Mods\n")
+	f.Add("[05:00:01 INFO  SMAPI] Mods go here: \n")
 	f.Add("")
 	f.Fuzz(func(t *testing.T, log string) {
 		path, ok := ModsPath(log)

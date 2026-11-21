@@ -65,7 +65,7 @@ func ModsPath(log string) (string, bool) {
 		if m == nil || strings.TrimSpace(m[3]) != "SMAPI" {
 			continue
 		}
-		if path, ok := strings.CutPrefix(m[4], "Mods go here: "); ok {
+		if path, ok := strings.CutPrefix(m[4], "Mods go here: "); ok && path != "" {
 			return path, true
 		}
 	}

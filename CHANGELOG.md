@@ -6,6 +6,21 @@ Notable changes to `go-smapi`. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `logline` matches the loaded save only at the message start and parses save folders that contain apostrophes.
+- A numeric version is read as written, rewritten dependencies are read with the parsing reader, and a set dependency minimum is kept over an empty `ContentPackFor` one.
+- `updatekey` refuses an overflowing Nexus id with `n=0`.
+
+## [0.3.1] - 2026-11-12
+
+### Fixed
+
+- `logline` names the mod, not the screen tag, in a split-screen header, and reads a header whose time uses a period separator.
+- `loadorder`: a repeated dependency is required when any entry requires it, `Resolve` treats a whitespace-only `UniqueID` as a real mod id, reads a backslash as a folder name off Windows, and hides a mod SMAPI would not load when a required dependency failed.
+- `RewriteDependencies` no longer drops every dependency when one entry is unreadable, and string `IsRequired` flags keep the right required state.
+- `GitHubUpdateKey` does not strip `@subkey` from a valid GitHub key.
+
 ## [0.3.0] - 2026-11-08
 
 ### Added
@@ -42,7 +57,8 @@ Notable changes to `go-smapi`. The format follows
 - `RewriteDependencies` adds and drops optional dependencies in a manifest.
 - `Resolve` returns mods in SMAPI's load order, flagging missing required dependencies and dependency loops.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/Rethunk-Tech/go-smapi/compare/v0.1.0...v0.2.0
